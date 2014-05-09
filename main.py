@@ -1,24 +1,49 @@
 # -*- coding: utf-8 -*-
 from GPS import GPSFuncs
+from Locality import locality
+from os import listdir, path, makedirs
+import shutil
 
-tags = GPSFuncs.getGPSTags("testimage2.jpg")
+directory = "testimages"
+savedirectory = "output"
+geonamesUser = "" #Geonames user ID goes here.
 
-#print (tags)
+files = listdir(directory)
+locations = {}
 
-latDMS = GPSFuncs.getDegMinSec(tags['gps']['GPSLatitude'])
+if not path.exists(savedirectory):
+    makedirs(savedirectory)
 
-print (latDMS)
+for file in files:
 
-longDMS = GPSFuncs.getDegMinSec(tags['gps']['GPSLongitude'])
+    #Bit of code to make sure we're not trying to do this on files other than images.'
+    if file[-3:].upper()!="JPG":
+        continue
 
-print (longDMS)
+    tags = GPSFuncs.getGPSTags(directory+"\\"+file)
 
-latDec = GPSFuncs.dmsToDecimal(latDMS, tags['gps']['GPSLatitudeRef'])
+    #print (tags)
 
-print (latDec)
+    latDMS = GPSFuncs.getDegMinSec(tags['gps']['GPSLatitude'])
 
-longDec = GPSFuncs.dmsToDecimal(longDMS, tags['gps']['GPSLongitudeRef'])
+    longDMS = GPSFuncs.getDegMinSec(tags['gps']['GPSLongitude'])
 
-print(longDec)
+    latDec = GPSFuncs.dmsToDecimal(latDMS, tags['gps']['GPSLatitudeRef'])
 
-print (str(latDec)+", "+str(longDec))
+    longDec = GPSFuncs.dmsToDecimal(longDMS, tags['gps']['GPSLongitudeRef'])
+
+    print (file + " " + str(latDec)+", "+str(longDec))
+
+    place = locality.getLocality(latDec, longDec,geonamesUser)
+
+
+    if locations.get(place) != None:
+        locations[place] += 1
+    else:
+        locations[place] = 1
+
+    print(locations)
+
+    print(file + " " + place)
+
+    shutil.copy(directory+"\\"+file,savedirectory+"\\"+place+" "+str(locations[place])+".jpg")

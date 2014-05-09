@@ -7,10 +7,10 @@ I've decided I already don't like playing with EXIF data, it's pretty nasty,
 (well, not really)
 Anyway, this function extracts the GPS tags from the EXIF data and ignores
 everything else.
-The image function argument is a PIL Image object, so yeah... remember that.
+The image function argument the path to the image you want to open
 '''
 
-
+#imagePath: String, the path of the image you want to reverse geocode
 def getGPSTags(imagePath):
     image = Image.open(imagePath)
     #Get the EXIF data from the image.
@@ -22,24 +22,20 @@ def getGPSTags(imagePath):
     #Aaand a place to store the GPS data.
     gpsTags = {}
 
+    #pulling out the EXIF tags.
     for tag, value in rawEXIF.items():
         decoded = TAGS.get(tag,tag)
         tags[decoded] = value
 
     rawGPS = tags['GPSInfo']
 
+    #Pulling out the GPS specific tags.
     for gpstag , value in rawGPS.items():
         decoded = GPSTAGS.get(gpstag,gpstag)
         gpsTags[decoded] = value
 
-    #Pull together out return variable that includes both tagsets.
+    #Pull together our return variable that includes both tagsets.
     return {'tags' : tags, 'gps' : gpsTags}
-
-
-
-
-
-
 
 '''
 This function converts the rational expression of Deg/Min/Sec in the EXIF data
@@ -51,6 +47,9 @@ llValues stands for (l)at (l)ong Values. Keepin' it generic.
 To convert these rational expressions into decimal we simply divide the first
 number by the second number, SIMPLES!
 '''
+#llValues: A dictionary with the Lat or Long values, normally the output from
+#the getGPSTags function.
+#See main.py for examples.
 def getDegMinSec(llValues):
     #The dict that will hold our return values.
     outPut = {}
@@ -71,6 +70,9 @@ It also takes a latref and longref argument, these factor in so that we get
 the coordinates right depending on the hemisphere we're in (southern, northern
 eastern and western)'
 '''
+#ll: The latitude or longitude to be converted to a decimal.
+#latLonRef: the reference attribute for the latitude or longitude to make sure
+#coordinates show up in the right place.
 def dmsToDecimal(ll, latLonRef):
     #Factoring in for the hemisphere we are in.
     #I'm doing the logic for both NS and EW, so don't get confused.'
